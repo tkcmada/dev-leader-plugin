@@ -1,0 +1,14 @@
+{
+  "name": "dev-leader-plugin",
+  "version": "0.1.0",
+  "description": "Software development lead persona + 6-stage workflow + memory consolidation. Three project-agnostic skills (leader / dev-workflow / dream) bundled as one Claude Code plugin.",
+  "author": "tkcmada",
+  "homepage": "https://github.com/tkcmada/dev-leader-plugin",
+  "repository": "https://github.com/tkcmada/dev-leader-plugin",
+  "license": "MIT",
+  "skills": [
+    {"name": "leader", "path": "skills/leader"},
+    {"name": "dev-workflow", "path": "skills/dev-workflow"},
+    {"name": "dream", "path": "skills/dream"}
+  ]
+}

@@ -89,18 +89,66 @@ dev-leader-plugin/
 │   └── plugin.json              Plugin metadata (name, version, skills list)
 ├── skills/
 │   ├── leader/
-│   │   ├── SKILL.md             Main entry: persona + standup
-│   │   └── reference/           standup.md / memory-format.md / github-issues.md / handoff-from-butler.md
+│   │   ├── SKILL.md             Main entry: persona + trigger table + flow outline (~109 lines)
+│   │   └── reference/           standup / orchestration / wrap-up / task-list /
+│   │                            memory-format / github-issues / handoff-from-butler
 │   ├── dev-workflow/
 │   │   ├── SKILL.md             Main entry: 6-stage flow
 │   │   └── reference/           ac-perspectives.md / titling-convention.md / architecture.md
 │   └── dream/
 │       ├── SKILL.md             Main entry: 7-phase flow
 │       └── reference/           phases.md / signal-sources.md / outcome.md
+├── docs/
+│   └── split-skill-pattern.md   Split-skill pattern doc (used by the leader skill split demo)
 ├── README.md                    (this file)
 ├── CHANGELOG.md
 ├── LICENSE                      MIT
 ```
+
+## Split demonstration — main SKILL.md + reference/*.md
+
+The `leader` skill in this plugin is split into a slim main entry (~109 lines) plus seven on-demand reference files. v0.2.0 added this split as a working demonstration of the pattern.
+
+### Before (v0.1.0)
+
+| File | Lines |
+|------|-------|
+| `skills/leader/SKILL.md` | 275 |
+| `skills/leader/reference/standup.md` | 107 |
+| `skills/leader/reference/memory-format.md` | 129 |
+| `skills/leader/reference/github-issues.md` | 102 |
+| `skills/leader/reference/handoff-from-butler.md` | 74 |
+
+### After (v0.2.0)
+
+| File | Lines | Status |
+|------|-------|--------|
+| `skills/leader/SKILL.md` | **109** | shrunk from 275 (60% reduction) |
+| `skills/leader/reference/standup.md` | 112 | frontmatter added |
+| `skills/leader/reference/memory-format.md` | 134 | frontmatter added |
+| `skills/leader/reference/github-issues.md` | 107 | frontmatter added |
+| `skills/leader/reference/handoff-from-butler.md` | 79 | frontmatter added |
+| `skills/leader/reference/orchestration.md` | 83 | **new** — persona + agent routing + memory writes |
+| `skills/leader/reference/wrap-up.md` | 84 | **new** — wrap-up + good-bye + retrospective |
+| `skills/leader/reference/task-list.md` | 57 | **new** — show task list + priority heuristics |
+
+The trigger / flow outline / cross-skill links in `SKILL.md` are unchanged — functional parity is preserved. The split only moves detail into per-topic reference files and adds a `References` table to the main entry.
+
+### How to apply the same split to your skill
+
+A consumer that wants to split their own skill can follow the recipe in [`docs/split-skill-pattern.md`](docs/split-skill-pattern.md):
+
+1. Inventory the current `SKILL.md` by section.
+2. Classify each section as `keep` (persona / trigger / flow outline) or `move` (step-by-step / format / side-flow).
+3. Cluster `move` sections into 3–5 cohesive reference files (one topic per file).
+4. Add YAML `name:` + `purpose:` frontmatter and a `## TOC` to each reference.
+5. Slim the main entry; replace each moved section with a 1–3 line summary + reference link.
+6. Add a `References` table to the main entry.
+7. Verify functional parity — externally observable behavior must be unchanged.
+
+### Relation to `dream` Skill Health Check
+
+The `dream` skill's **Skill Health Check** phase can auto-propose splits for `SKILL.md` files that exceed the recommended length. Each proposal surfaces as an `R-SH-N` retrospective item, walked through during the next standup for accept / reject / defer. Use `docs/split-skill-pattern.md` as the execution playbook when accepting one.
 
 ## License
 

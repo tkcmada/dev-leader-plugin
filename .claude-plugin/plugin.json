@@ -1,6 +1,6 @@
 {
   "name": "dev-leader-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Software development lead persona + 6-stage workflow + memory consolidation. Three project-agnostic skills (leader / dev-workflow / dream) bundled as one Claude Code plugin.",
   "author": "tkcmada",
   "homepage": "https://github.com/tkcmada/dev-leader-plugin",

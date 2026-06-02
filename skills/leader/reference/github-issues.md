@@ -1,3 +1,8 @@
+---
+name: github-issues
+purpose: Issue body template, label policy, AC closure rule, commit message convention.
+---
+
 # GitHub Issues — issue body template + label policy + closure rule
 
 This reference documents the issue conventions used by the leader skill.

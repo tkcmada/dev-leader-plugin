@@ -1,3 +1,8 @@
+---
+name: standup
+purpose: Full step-by-step standup procedure executed on "hi leader".
+---
+
 # Standup — full step-by-step + priority heuristics
 
 This reference expands the "On Activation — Standup" section of SKILL.md.

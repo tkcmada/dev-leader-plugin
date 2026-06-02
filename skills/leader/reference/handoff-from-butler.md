@@ -1,3 +1,8 @@
+---
+name: handoff-from-butler
+purpose: Optional consumer-layer pattern routing dev work from a higher-level skill into leader.
+---
+
 # Handoff from a consumer skill (e.g. butler ↔ leader)
 
 This reference documents an optional consumer-layer handoff pattern where a higher-level skill (e.g. a household assistant `butler`) routes development-related work to `leader`. The pattern is **opt-in** — vanilla `leader` consumers (e.g. a pure development project) ignore this file.

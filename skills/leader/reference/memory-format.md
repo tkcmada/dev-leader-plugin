@@ -1,3 +1,8 @@
+---
+name: memory-format
+purpose: File formats for daily / decision / note / retrospective + index columns.
+---
+
 # Memory format — daily / decision / note / retrospective files
 
 This reference documents the file formats stored under `memory/dev/`.

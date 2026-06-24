@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# hooks/pre-commit — secret / PII reject gate for this public export repo.
+#
+# Blocks any commit that stages a secret, a private PAT, or private-project
+# family PII / internal paths. This repo is a *generic* public skill/plugin;
+# it must never carry the maintainer's household names or internal repo paths
+# (a real leak happened upstream: lowercase family names + `user:<member>`
+# labels slipped through a case-sensitive scrub — see upstream #716/#718).
+#
+# Wiring (committed-hook approach, reproducible for every clone):
+#   git config core.hooksPath hooks
+#
+# Detection (exit 1 on any hit; the matched VALUE is never printed):
+#   - secret-token : ghp_/gho_/ghu_/ghs_/ghr_ PAT, AWS AKIA, Slack xox*,
+#                    PEM private key header, Bearer token
+#   - family-name  : standalone romaji names (case-insensitive, whole word):
+#                    toku / tokutaro / emi / ayaka / shimada
+#                    (substrings like emit/emits/emission/semi/remind/chemistry
+#                     do NOT fire — whole-word match only)
+#   - family-label : user:(toku|emi|ayaka) labels
+#   - family-kanji : 篤太郎 / 朱花 / 彩花 / 嶋田
+#   - internal-path: /home/<user>/ , ~/.secrets , butler.env , /Users/<user>/
+#
+# Override only for a legitimate false positive after manual review:
+#   git commit --no-verify   (discouraged — fix the line instead)
+set -u
+
+if [ "$#" -gt 0 ]; then
+  FILES=("$@")
+else
+  mapfile -t FILES < <(git diff --cached --name-only --diff-filter=ACM)
+fi
+[ "${#FILES[@]}" -eq 0 ] && { echo "pre-commit: no staged files"; exit 0; }
+
+# rule NAME | grep-mode (E = -nIE, iwE = -nIiwE whole-word) | ERE
+RULES=(
+  'secret-token|E|(gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{16,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|Bearer [A-Za-z0-9._-]{20,})'
+  'family-name|iwE|\b(toku|tokutaro|emi|ayaka|shimada)\b'
+  'family-label|E|(user:(toku|emi|ayaka))\b'
+  'family-kanji|E|(篤太郎|朱花|彩花|嶋田)'
+  'internal-path|E|(/home/[a-z0-9_]+/|~/\.secrets|\.secrets/|butler\.env|/Users/[a-z0-9_]+/)'
+)
+
+fail=0
+for f in "${FILES[@]}"; do
+  [ -f "$f" ] || continue
+  # The gate definition itself necessarily names the rejected tokens (in its
+  # rules + docs). Skip the hooks/ dir so the gate can commit itself; it never
+  # carries real PII, only the detection patterns.
+  case "$f" in hooks/*|*/hooks/pre-commit) continue ;; esac
+  grep -Iq . "$f" 2>/dev/null || continue   # text files only
+  for rule in "${RULES[@]}"; do
+    name="${rule%%|*}"
+    rest="${rule#*|}"
+    flags="${rest%%|*}"
+    pat="${rest#*|}"
+    case "$flags" in
+      iwE) gflags=(-nIiwE) ;;
+      *)   gflags=(-nIE) ;;
+    esac
+    # discard matched text — report only file + line + rule name (no value)
+    if linenos=$(grep "${gflags[@]}" "$pat" "$f" 2>/dev/null | cut -d: -f1); then
+      if [ -n "$linenos" ]; then
+        while IFS= read -r ln; do
+          echo "pre-commit: [REJECT] rule=$name file=$f line=$ln (value redacted)" >&2
+          fail=$((fail + 1))
+        done <<< "$linenos"
+      fi
+    fi
+  done
+done
+
+if [ "$fail" -gt 0 ]; then
+  echo "" >&2
+  echo "pre-commit: FAIL — $fail secret/PII match(es). Commit BLOCKED." >&2
+  echo "pre-commit: genericize the flagged line(s) and recommit. Do not use --no-verify to bypass a real leak." >&2
+  exit 1
+fi
+echo "pre-commit: OK — no secret/PII match."
+exit 0

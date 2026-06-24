@@ -132,6 +132,20 @@ A consumer that wants to split their own skill can follow the recipe in [`docs/s
 
 The `dream` skill's **Skill Health Check** phase can auto-propose splits for `SKILL.md` files that exceed the recommended length. Each proposal surfaces as an `R-SH-N` retrospective item, walked through during the next standup for accept / reject / defer. Use `docs/split-skill-pattern.md` as the execution playbook when accepting one.
 
+## Secret / PII safety
+
+This repo is public. A committed pre-commit hook (`hooks/pre-commit`) rejects any commit
+that contains secrets (PAT / AWS / Slack / PEM / Bearer), maintainer family PII
+(whole-word romaji names + kanji + `user:<member>` labels — substrings like `emit` /
+`emission` do not fire), absolute home paths, or other private tokens. Enable it once after
+cloning with:
+
+```sh
+git config core.hooksPath hooks
+```
+
+The matched value is never printed (only file + line + rule name).
+
 ## License
 
 [MIT](LICENSE).

@@ -1,11 +1,11 @@
 ---
 name: dev-workflow
-description: Development task standard 6-stage flow for type:story tickets, including brainstorming, AC writing, approval gate, automated implementation, QA, and close. Loaded by a leader or butler skill when a type:story / type:epic issue is processed. Project-agnostic and user-agnostic.
+description: type:story / type:epic 6-stage flow (file → refinement → AC gate → approval → implement → QA → close), plus optional consumer Fast Lane. Loaded on demand by a consumer skill. See body for details.
 ---
 
 # dev-workflow — development task standard flow
 
-This skill defines how a `type:story` issue is processed end-to-end, including the brainstorming → AC → approval → implementation → QA → close pipeline. It is loaded on demand by a consumer skill (e.g. `leader` or `butler`) when a `type:story` / `type:epic` issue is encountered.
+This skill defines how a `type:story` issue is processed end-to-end, including the brainstorming → AC → approval → implementation → QA → close pipeline. It is loaded on demand by a consumer skill when a `type:story` / `type:epic` issue is encountered. The description was compressed to <200 chars — the full trigger list (when this skill applies vs. when the consumer routes elsewhere) lives in [When to use this skill](#when-to-use-this-skill) below.
 
 All paths in this doc are **repo-relative**. The GitHub repo, push branch, and project root are resolved by the consumer at runtime (`gh` / `git remote` / `git rev-parse --show-toplevel`), not hard-coded.
 
@@ -13,24 +13,38 @@ Issues labeled `type:story` are **always** processed by the 6-stage flow defined
 
 ## TOC
 
+**In this file:**
+
 - [Ticket hierarchy: epic / story](#ticket-hierarchy-epic--story)
 - [When to use this skill](#when-to-use-this-skill)
-- [6-stage flow](#6-stage-flow)
-- [AC perspectives — 6 viewpoint checklist](reference/ac-perspectives.md)
-- [Titling convention `[code]` / `[code-Sn]`](reference/titling-convention.md)
-- [Architecture / consumer relationship](reference/architecture.md)
+- [6-stage flow](#6-stage-flow) (summary + link)
+- [Good vs bad AC examples](#good-vs-bad-ac-examples)
+- [Options principle (full)](#options-principle-full)
+- [User Story — bad vs good example](#user-story--bad-vs-good-example)
+- [Commit conventions (full table)](#commit-conventions-full-table)
+- [Self-improvement pipeline (generic)](#self-improvement-pipeline-generic) (summary + link)
+
+**Reference files (detail split out for context economy):**
+
+- [`reference/six-stage-flow.md`](reference/six-stage-flow.md) — full stage-by-stage procedure: [2a] single-gate refinement, [2b] AC (6-viewpoint checklist), [3] AC Gate, [3.5] approval, [4] implementation, [5]/[5e] QA + E2E gate, [6] close
+- [`reference/self-improvement.md`](reference/self-improvement.md) — self-improvement pipeline detail + export-time name-leak lint
+- [`templates/refinement-drafts.md`](templates/refinement-drafts.md) — refinement draft boilerplate (EN + JA)
 
 ## Ticket hierarchy: epic / story
 
 ```
-type:epic ──(epic to story)──▶ type:story ──(6-stage flow [1]–[6])──▶ implement & close
+type:story (default: 1 ticket = multiple sub-stories aggregated) ──(6-stage flow [1]–[6])──▶ implement & close
+
+type:epic (only when user explicitly requests epic) ──(epic to story)──▶ type:story × N ──(6-stage flow)──▶ ...
 ```
 
 - **`type:story` is the only implementation-unit ticket.** Single small tasks are also filed as `type:story`, not as a separate "dev" type. (Some consumers may add a separate fast-lane type — see the consumer's own SKILL.md.)
-- A story can exist under an epic or on its own.
+- **Default policy: aggregate multiple sub-stories into a single `type:story` ticket** rather than splitting them into separate tickets. Each sub-story carries its own AC under a single ticket; AC Gate review and approval happen **once per ticket**. After approval, all sub-stories are dispatched together.
+- **Splitting into multiple story tickets** (or creating an epic + child stories) is done **only when the user explicitly requests it** (e.g. "epic にして" / "split into stories" / "add epic ticket"). Do not auto-split.
+- A story can exist under an epic (when explicitly created) or on its own (default).
 - The epic itself is **not** an implementation unit and does not go through the 6-stage flow. Close the epic once all child stories are `status:done`.
-- **"add epic ticket"** / **"epic to story"** are leader recognition phrases handled by the consumer skill (file `type:epic` / brainstorm refinement → spawn child stories). Refinement fills 5 sections: Goal / Use Case / Failure Scenarios & Edge Cases / Architecture / Acceptance Criteria.
-- Slice child stories as **user-facing vertical slices** (e.g. "add logging feature"), not by component (e.g. "module A only"). Link the epic number from the story body.
+- **"add epic ticket"** / **"epic to story"** are recognition phrases handled by the consumer skill **only when the user explicitly invokes them** (file `type:epic` / refine → spawn child stories). Each child story then goes through the single-gate refinement defined in [\[2a\] Refinement single-gate document-completion flow](reference/six-stage-flow.md#2a-refinement-single-gate-document-completion-flow) (8 mandatory sections: Goal / Non-goal / Analysis / User Story / Use case / Architecture / Failure scenario / AC).
+- When child stories are explicitly requested, slice them as **user-facing vertical slices** (e.g. "add logging feature"), not by component (e.g. "module A only"). Link the epic number from the story body.
 
 ## When to use this skill
 
@@ -59,129 +73,22 @@ Issues that do not qualify (routine task management, ops notes, etc.) are handle
    ↓ approved
 [4] Automated implementation (background agent)
    ↓
-[5] QA (consumer verifies each AC)
+[5] QA (consumer verifies each AC) ← includes [5e] mandatory E2E gate
    ↓
 [6] Close the ticket
 ```
 
-### [1] File a ticket
+The **full stage-by-stage procedure** lives in [`reference/six-stage-flow.md`](reference/six-stage-flow.md) and is the authoritative detail for every stage. It covers, in order:
 
-Create a new GitHub Issue.
+- **[1] File a ticket** — `gh issue create` with `status:open` + `type:story`; required body sections; AC may be deferred to [2].
+- **[2] Refinement** — runs the **[2a] single-gate document-completion flow** (8 mandatory sections: Goal / Non-goal / Analysis / User Story / Use case / Architecture / Failure / AC; 3 input sources User/Codebase/Net; 6-item self-check; brainstorm only on insufficiency; Issue body = latest draft, comments = feedback; AskUserQuestion brainstorming-only policy) then **[2b] write Acceptance Criteria** (6-viewpoint AC checklist — see `reference/six-stage-flow.md` §[2b]).
+- **[3] AC Gate check** — all gate items must pass or return to [2].
+- **[3.5] User approval** — brainstormed tasks only; approval doubles as commit/push permission. Slot-busy queue state = **`status:ac_approved`** (not `status:blocked`, which is reserved for true external dependencies, #505).
+- **[4] Automated implementation** — background agent brief + BG code-slot cap (consumer-specific).
+- **[5] QA** — consumer verifies each AC, plus the **[5e] mandatory E2E gate** for web / UI / pipeline / voice changes (real-path Playwright + screenshot evidence, deploy-before-E2E for live services, E2E passes before `status:user_confirming`).
+- **[6] Close the ticket** — diff review, commit with `#N`, direct push, label → `status:done`, close.
 
-- **Command**: `gh issue create --title "..." --body "..." --label "status:open,type:story"`
-- **Labels**: `status:open` + `type:story`.
-- **Title**: short, verb-led summary.
-- **Required body sections**: `## Overview` (1–2 sentences) / `## Background` (why, related issues) / `## Next Action` (Owner: consumer / agent / user; Action: 1–2 lines).
-
-AC may be undefined at this stage (set in [2]).
-
-### [2] Refinement (Brainstorming → AC)
-
-Runs in two phases:
-
-#### [2a] Brainstorming
-
-**Required when**: creating a new skill/agent, effort ≥ 30 min, spans multiple files, introduces a new capability, impacts a running service, changes hardware behavior.
-**Can skip when**: trivial bug fix in one function, doc/comment edits, pattern-matching refactor, renames/typos, dependency bumps, tests/logs only.
-
-Procedure:
-
-1. Explore the design space.
-2. Append the **5-section structured template** to the issue body (User Story / Goals & Non-Goals / Approach comparison / Edge Cases / AC candidates — full template below).
-3. Compress unknowns to **1–3 questions max** — avoid drip-feeding.
-4. Each question must offer **2–4 concrete options** (label + trade-off). If you have a recommendation, place it first and tag `(recommended)`. **Never** use Greek letters (α/β/γ) for option labels — use **uppercase Latin `A`/`B`/`C`/`D`/`E`** only. Full Options principle below.
-5. Once aligned, finalize the sections.
-
-#### [2b] Write Acceptance Criteria
-
-Take the "AC candidates" from brainstorming and detail them to the level of verification commands. See `reference/ac-perspectives.md` for the 6 viewpoint checklist.
-
-```markdown
-## Acceptance Criteria
-
-- [ ] (concrete done-condition 1)
-  - Verify: (command or procedure)
-- [ ] (concrete done-condition 2)
-  - Verify: (...)
-```
-
-### [3] AC Gate check
-
-Self-check the AC. **All items must pass — otherwise return to [2].**
-
-| Gate item | Check |
-|-----------|-------|
-| Brainstorming complete | For important / complex tasks, the [2a] 5 sections are present |
-| Specificity | No vague phrasing like "works", "supports", "improves" |
-| Verifiability | Each item is objectively checkable by a human or a command |
-| Coverage | No gaps versus the stated goal |
-| Verification means | Test / command / procedure is included for each item |
-| Impact scope | Service restart / regression check is covered (if existing service modified) |
-| Failure paths | Edge cases / error behavior are addressed (when relevant) |
-| Hardware verification | If firmware / hardware changes, post-flash verification is included |
-
-If the gate passes:
-- **Task with brainstorming** → [3.5] User approval
-- **Task that skipped brainstorming** → directly [4] Automated implementation; set `status:in-progress` and post a start marker
-
-### [3.5] User approval (brainstorming tasks only)
-
-For tasks where AC was set via interactive brainstorming, **always obtain explicit user approval before starting implementation**.
-
-**Important**: The project's "do not auto-commit unless explicitly told" rule is **overridden** by this [3.5] approval. The approval grants "permission to start implementation **and** to commit/push at [6]". Unless explicitly opted out at approval time, the workflow may proceed to commit & push at [6] automatically.
-
-Procedure:
-
-1. Present a summary of the AC and implementation plan.
-2. Ask for approval with options (state explicitly that approval covers commit/push):
-   - "Approve — implement & auto commit/push at [6]" (recommended)
-   - "Approve — implement, but I will review the commit manually"
-   - "Modify AC" (return to [2b]) / "Restart brainstorming" (return to [2a]) / "Hold / later"
-3. On "Approve", flip the label to `status:in-progress`, post a start marker, proceed to [4].
-4. **Do not start implementation without approval.**
-
-**Exception**: If the user has previously said "no need to re-approve" or "go ahead automatically", you may skip approval (log that fact in the issue).
-
-### [4] Automated implementation
-
-Launch a background agent (`general-purpose` etc.). Include in the agent brief:
-
-- Issue number (`#NNN`)
-- All AC items
-- Constraints (do not push, do not touch unrelated files, do not break existing tests, etc.)
-- Comment format on completion
-
-The agent must post a result comment on the issue when it finishes (ending with the consumer's bot marker, e.g. `<!-- leader-bot -->`).
-
-### [5] QA (AC verification)
-
-When the agent reports completion, **the consumer itself** verifies each AC item.
-
-| Verification means | Example |
-|--------------------|---------|
-| File / code review | `git diff` to confirm the change matches intent |
-| Static check | `python3 -c "import ast; ast.parse(open('x.py').read())"` |
-| Service health check | `systemctl restart <unit>` → `is-active` → `journalctl -u <unit> -n 30` |
-| Behavior check | Run a script end-to-end and verify expected output |
-| Output comparison | Compare generated file / log against expected snapshot |
-
-Record per-AC results as a `## QA results` table on the issue.
-
-**If any item is ❌**:
-- If the AC was insufficient, return to [2] Refinement.
-- If the implementation is buggy, send the agent back to [4] with a fix task.
-
-### [6] Close the ticket
-
-Once all AC are ✅ (and [3.5] approval covered commit/push):
-
-1. **Diff review**: run `git diff` to confirm the final diff matches intent.
-2. **Commit**: one or a few commits per issue. English, subject + body, **include the issue number** (e.g. `Fix #NNN: <summary>`).
-3. **Direct push** to the current branch (no PR workflow): `git push origin $(git symbolic-ref --short HEAD)`
-4. **Update the issue**:
-   - `gh issue edit <num> --add-label status:done --remove-label status:in-progress`
-   - Post a result comment (must end with the consumer's bot marker)
-   - `gh issue close <num>`
+Read `reference/six-stage-flow.md` before driving any stage.
 
 ---
 
@@ -233,52 +140,16 @@ Brainstorming questions must **always offer 2–4 concrete options**. Each optio
 
 ---
 
-## 5-section brainstorming template (full)
+## User Story — bad vs good example
 
-Append this to the issue body after [2a] brainstorming aligns direction with the user:
-
-```markdown
-## Agreed design (brainstorming result)
-
-### 1. User Story
-As a [actor],
-I want [what to achieve],
-so that [value gained / problem solved].
-
-### 2. Goals & Non-Goals
-**Goals**:
-- (goal 1)
-- (goal 2)
-
-**Non-Goals** (explicitly out of scope this time):
-- (item)
-
-### 3. Approach comparison
-| Option | Outline | Pros | Cons |
-|--------|---------|------|------|
-| A | ... | ... | ... |
-| B | ... | ... | ... |
-
-**Chosen**: B
-**Why**: (why B over A)
-
-### 4. Edge Cases & Failure Modes
-- (edge case 1 and behavior)
-- (fallback behavior, recovery, etc.)
-
-### 5. AC candidates
-AC candidates derived from the alignment (will be finalized in [2b]):
-- (...)
-```
-
-**User Story — bad vs good example:**
+The User Story slot in the refinement document (see `templates/refinement-drafts.md`) is mandatory. Pattern: `As <User>, from <Where>, when <When>, I do <What>, expecting <Expected>.`
 
 Bad:
 > "Save settings"
 > (Who? What problem does it solve?)
 
 Good:
-> As an operator, I want device settings persisted in non-volatile storage, so that configuration survives unintended resets and I don't have to reconfigure mid-run.
+> As an operator, from the CLI, when I change a device config, I do `device set-config`, expecting the new config to survive unintended resets without manual reconfiguration.
 
 ---
 
@@ -308,8 +179,18 @@ Verified: settings survive 5 forced resets.
 
 ---
 
+## Self-improvement pipeline (generic)
+
+This skill ships an **optional, opt-in** self-improvement pipeline: a consumer's memory-consolidation skill (when one exists) can propose improvements to the consumer's own skills / agents and surface them through the same 6-stage flow above. A consumer without such a skill simply omits these steps.
+
+The pipeline distinguishes two suggestion origins (**Internal** = patterns observed inside the consumer project; **External** = generic external sources) so limits and quality bars can be tuned separately, each capped at 1 issue / day.
+
+The full pipeline — source-naming hard rule, per-issue quality bar, per-day cap counter, standup surfacing, issue body template, consumer-specific extension boundary, and the **export-time name-leak lint** (`scripts/lint_skill_export.sh`, wired into pre-commit) — lives in [`reference/self-improvement.md`](reference/self-improvement.md). It is **not duplicated here** ([[single-source]]).
+
+---
+
 ## References
 
-- `reference/ac-perspectives.md` — 6 viewpoint AC checklist (Functional / Behavior / Error / Observability / Verification / Documentation)
-- `reference/titling-convention.md` — `[code]` / `[code-Sn]` epic / story title prefix convention
-- `reference/architecture.md` — How a consumer skill (leader / butler) loads this skill
+- [`reference/six-stage-flow.md`](reference/six-stage-flow.md) — full 6-stage procedure (stages [1]–[6], including [2a] single-gate refinement, [2b] AC with the 6-viewpoint checklist, [3.5] approval, and the [5e] mandatory E2E gate)
+- [`reference/self-improvement.md`](reference/self-improvement.md) — optional self-improvement pipeline + export-time name-leak lint
+- [`templates/refinement-drafts.md`](templates/refinement-drafts.md) — refinement draft boilerplate

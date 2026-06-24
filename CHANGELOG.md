@@ -2,6 +2,14 @@
 
 All notable changes to **dev-leader-plugin** are recorded here.
 
+## 0.3.0 (2026-06-24) — re-export: latest leader / dev-workflow / dream
+
+- Re-synced all three skills from the upstream source of truth and re-genericized for public use.
+- `dev-workflow`: single-gate refinement (8 mandatory sections, brainstorm-on-insufficiency), reference split (`reference/six-stage-flow.md` + `reference/self-improvement.md`), refinement-draft templates (`templates/refinement-drafts.md`), and the mandatory web/UI/voice **E2E gate** in QA (`[5e]`).
+- `leader`: refreshed persona / standup / orchestration references (`reference/architecture.md`, `reference/dev-workflow.md`, `reference/dream.md`, `reference/outcome.md`).
+- `dream`: 7-phase loop with the **memory-importance schema**, Phase 7 skill-health check, optional principal-hierarchy consolidation (consumer-specific), and the retrospective loop.
+- All consumer-specific paths, service names, internal issue URLs, and internal memory-note links were genericized; project-private PII / secrets are scrubbed by a fail-first export gate before publish.
+
 ## 0.2.0 (2026-06-02) — leader split demonstration
 
 - Split `skills/leader/SKILL.md` from a single 275-line file into a slim 109-line main entry plus seven on-demand reference files (60% reduction).

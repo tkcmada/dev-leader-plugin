@@ -1,28 +1,18 @@
-# Outcome loop — R-N / R-D / R-S / R-SH / R-Self relationship
+# outcome — the close-the-loop record + improvement system
 
-The **outcome loop** is a 3-layer record-improvement pipeline. Each layer captures different signal at different times in an issue's life. This reference describes how dream-skill outputs (R-D / R-S / R-SH) integrate with the broader loop maintained by the consumer (`leader` and/or `butler`).
-
-## TOC
-
-- [The 3 layers](#the-3-layers)
-- [Layer 1: Issue `## Outcome` section](#layer-1-issue--outcome-section)
-- [Layer 2: Retrospective Proposals (R-N)](#layer-2-retrospective-proposals-r-n)
-- [Layer 3: Dream R-D / R-S / R-SH](#layer-3-dream-r-d--r-s--r-sh)
-- [How the layers reinforce each other](#how-the-layers-reinforce-each-other)
-- [Prefix table](#prefix-table)
-- [Design rationale](#design-rationale)
+The **outcome loop** is a 3-layer record-improvement pipeline that the leader, dev-workflow, and dream skills run jointly. Each layer captures different signal at different times in an issue's life.
 
 ## The 3 layers
 
 | Layer | Where | Written by | When | Surfaced by |
 |-------|-------|-----------|------|-------------|
-| **Issue `## Outcome` section** | GitHub issue body | consumer at [6] Close | per-issue, at close time | Standup "open issues" / `gh issue view` |
-| **Retrospective Proposals (R-N)** | `memory/dev/retrospectives/YYYY-MM-DD.md` | consumer at `wrap up` / `good bye` / `retrospective` | per-session | Standup "Retrospective proposals" review |
+| **Issue `## Outcome` section** | GitHub issue body | leader at [6] Close | per-issue, at close time | Standup "open issues" / `gh issue view` |
+| **Retrospective Proposals (R-N)** | `memory/dev/retrospectives/YYYY-MM-DD.md` | leader at `wrap up` / `good bye` / `retrospective` | per-session | Standup "Retrospective proposals" review |
 | **Dream R-D / R-S / R-SH** | `memory/shared/notes/dream-*-suggestions-YYYY-MM-DD.md` | dream Phase 4 / 6 / 7 | between sessions (24h cache) | Standup "retrospective proposals" + auto-filed GitHub issues for R-S / R-SH |
 
 ## Layer 1: Issue `## Outcome` section
 
-When closing an issue at [6], the consumer appends a `## Outcome` section to the issue body capturing what actually happened (vs. what the AC promised):
+When closing an issue at [6], leader appends a `## Outcome` section to the issue body capturing what actually happened (vs. what the AC promised):
 
 ```markdown
 ## Outcome
@@ -41,7 +31,7 @@ This is the **per-issue record** — the source of truth for "did this story act
 
 ## Layer 2: Retrospective Proposals (R-N)
 
-End-of-session retrospective collects observed problems with the consumer's own behavior, the agent routing, or the dev-workflow itself, and writes them as R-1, R-2, ... Proposals in `memory/dev/retrospectives/YYYY-MM-DD.md`.
+End-of-session retrospective collects observed problems with the leader's own behavior, the agent routing, or the dev-workflow itself, and writes them as R-1, R-2, ... Proposals in `memory/dev/retrospectives/YYYY-MM-DD.md`.
 
 The next standup walks through pending Proposals and asks the user one of:
 
@@ -63,25 +53,12 @@ R-S / R-SH file at generation time precisely because they target the skill defin
 
 ## How the layers reinforce each other
 
-1. **AC fails at QA** → consumer records `❌` in Outcome → opens follow-up issue (Layer 1 → new ticket).
-2. **Same routing mistake recurs** → consumer's retrospective flags R-N "agent routing" Proposal (Layer 2).
-3. **Skill misled the consumer multiple times in JSONL** → dream Phase 6 emits R-S targeted at that skill (Layer 3).
+1. **AC fails at QA** → leader records `❌` in Outcome → opens follow-up issue (Layer 1 → new ticket).
+2. **Same routing mistake recurs** → leader's retrospective flags R-N "agent routing" Proposal (Layer 2).
+3. **Skill misled the leader multiple times in JSONL** → dream Phase 6 emits R-S targeted at that skill (Layer 3).
 4. **SKILL.md grew too large** → dream Phase 7 emits R-SH proposing a section to extract into `reference/<topic>.md` (Layer 3).
 
 The dream skill is intentionally read-only at the source layer (never edits skills / scripts / settings); it converts friction into actionable issues so the maintainer always remains in the approval seat for code/skill changes.
-
-## Prefix table
-
-| Prefix | Source | Output file | Standup surface | adoption row | Auto-file issue |
-|--------|--------|-------------|-----------------|--------------|-----------------|
-| R-N | daily log (Phase 5) | `memory/users/<actor>/daily/YYYY-MM-DD.md` `## Retrospective` | yes | accept/reject/defer | accept only |
-| R-D | dream consolidate (Phase 4 trailer) | `memory/shared/notes/dream-suggestions-YYYY-MM-DD.md` | yes | accept/reject/defer | accept only |
-| R-S | dream self-improvement (Phase 6) | `memory/shared/notes/dream-skill-suggestions-YYYY-MM-DD.md` | yes | accept/reject/defer | **filed at generation** (`status:action_required` + `type:dev`) |
-| R-SH | dream skill health check (Phase 7) | same file (append) | yes | accept/reject/defer | **filed at generation** (`status:action_required` + `type:dev`) |
-| R-Self-Internal | dream synthesis (Phase 8, internal axis) | same file (append) | yes | accept/reject/defer | **filed at generation** (`status:action_required` + `type:dev`); cap = 1/day |
-| R-Self-External | dream synthesis (Phase 8, external axis) | same file (append) | yes | accept/reject/defer | **filed at generation** (`status:action_required` + `type:dev`); cap = 1/day |
-
-R-S / R-SH / R-Self-* are pre-filed at generation; the maintainer's adjudication becomes "accept (= start work) / reject (= close issue) / defer (= keep `status:blocked`)". R-Self-* additionally require ≥ 2 supporting sources, an external-research remediation paragraph, and dedup against open issues / feedback memory / `retrospective-adoptions.md` last 90 days.
 
 ## Design rationale
 

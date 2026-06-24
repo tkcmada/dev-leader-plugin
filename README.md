@@ -89,15 +89,16 @@ dev-leader-plugin/
 │   └── plugin.json              Plugin metadata (name, version, skills list)
 ├── skills/
 │   ├── leader/
-│   │   ├── SKILL.md             Main entry: persona + trigger table + flow outline (~109 lines)
-│   │   └── reference/           standup / orchestration / wrap-up / task-list /
-│   │                            memory-format / github-issues / handoff-from-butler
+│   │   ├── SKILL.md             Main entry: persona + trigger table + flow outline
+│   │   ├── README.md            Skill overview
+│   │   └── reference/           architecture.md / dev-workflow.md / dream.md / outcome.md
 │   ├── dev-workflow/
-│   │   ├── SKILL.md             Main entry: 6-stage flow
-│   │   └── reference/           ac-perspectives.md / titling-convention.md / architecture.md
+│   │   ├── SKILL.md             Main entry: single-gate 6-stage flow
+│   │   ├── reference/           six-stage-flow.md / self-improvement.md
+│   │   └── templates/           refinement-drafts.md
 │   └── dream/
 │       ├── SKILL.md             Main entry: 7-phase flow
-│       └── reference/           phases.md / signal-sources.md / outcome.md
+│       └── reference/           phases.md / outcome.md
 ├── docs/
 │   └── split-skill-pattern.md   Split-skill pattern doc (used by the leader skill split demo)
 ├── README.md                    (this file)
@@ -105,34 +106,15 @@ dev-leader-plugin/
 ├── LICENSE                      MIT
 ```
 
-## Split demonstration — main SKILL.md + reference/*.md
+## Split-skill pattern — main SKILL.md + reference/*.md
 
-The `leader` skill in this plugin is split into a slim main entry (~109 lines) plus seven on-demand reference files. v0.2.0 added this split as a working demonstration of the pattern.
+Every skill in this plugin keeps a **slim main `SKILL.md`** (persona / trigger table / flow outline) and pushes step-by-step detail into on-demand `reference/*.md` (and, for `dev-workflow`, `templates/*.md`) files. The main entry links to each reference via a `References` table, so the model loads detail only when it actually enters that stage. This keeps the always-loaded context small while preserving the full procedure.
 
-### Before (v0.1.0)
+- `leader` → `reference/{architecture,dev-workflow,dream,outcome}.md`
+- `dev-workflow` → `reference/{six-stage-flow,self-improvement}.md` + `templates/refinement-drafts.md`
+- `dream` → `reference/{phases,outcome}.md`
 
-| File | Lines |
-|------|-------|
-| `skills/leader/SKILL.md` | 275 |
-| `skills/leader/reference/standup.md` | 107 |
-| `skills/leader/reference/memory-format.md` | 129 |
-| `skills/leader/reference/github-issues.md` | 102 |
-| `skills/leader/reference/handoff-from-butler.md` | 74 |
-
-### After (v0.2.0)
-
-| File | Lines | Status |
-|------|-------|--------|
-| `skills/leader/SKILL.md` | **109** | shrunk from 275 (60% reduction) |
-| `skills/leader/reference/standup.md` | 112 | frontmatter added |
-| `skills/leader/reference/memory-format.md` | 134 | frontmatter added |
-| `skills/leader/reference/github-issues.md` | 107 | frontmatter added |
-| `skills/leader/reference/handoff-from-butler.md` | 79 | frontmatter added |
-| `skills/leader/reference/orchestration.md` | 83 | **new** — persona + agent routing + memory writes |
-| `skills/leader/reference/wrap-up.md` | 84 | **new** — wrap-up + good-bye + retrospective |
-| `skills/leader/reference/task-list.md` | 57 | **new** — show task list + priority heuristics |
-
-The trigger / flow outline / cross-skill links in `SKILL.md` are unchanged — functional parity is preserved. The split only moves detail into per-topic reference files and adds a `References` table to the main entry.
+The trigger / flow outline / cross-skill links in each `SKILL.md` are the externally observable contract — splitting only relocates detail, never changes behavior.
 
 ### How to apply the same split to your skill
 

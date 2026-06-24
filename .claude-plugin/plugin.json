@@ -1,7 +1,7 @@
 {
   "name": "dev-leader-plugin",
-  "version": "0.2.0",
-  "description": "Software development lead persona + 6-stage workflow + memory consolidation. Three project-agnostic skills (leader / dev-workflow / dream) bundled as one Claude Code plugin.",
+  "version": "0.3.0",
+  "description": "Software development lead persona + single-gate 6-stage workflow + 7-phase memory consolidation. Three project-agnostic skills (leader / dev-workflow / dream) bundled as one Claude Code plugin. dev-workflow ships the single-gate refinement flow + reference split + mandatory web/UI E2E gate; dream ships the 7-phase loop with the memory importance schema, skill-health check, and retrospective loop.",
   "author": "tkcmada",
   "homepage": "https://github.com/tkcmada/dev-leader-plugin",
   "repository": "https://github.com/tkcmada/dev-leader-plugin",

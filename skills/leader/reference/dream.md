@@ -343,9 +343,9 @@ Phase 6 末尾の sub-step として、 **service journal log の error burst** 
 2. `scan = scan_journal(since_iso="24 hours ago")` — journalctl --user -u <service> --since "24 hours ago" を全 pattern について walk。
 3. `breaches = detect_threshold_breach(scan)` — 24h count >= threshold OR consecutive >= threshold で Breach 抽出。
 4. `for b in breaches:` 各 breach について:
-   - `proposal = format_r_self_proposal(b)` で `{"title", "body", "labels": ["type:dev","status:action_required","user:toku"]}` を得る。
+   - `proposal = format_r_self_proposal(b)` で `{"title", "body", "labels": ["type:dev","status:action_required","user:<owner>"]}` を得る。
    - 既存 R-Self cap (retrospective policy / 1/day) と dedup (proposal-simplicity) を共通 lib (`self_improvement_cap` / `self_improvement_dedup`) 経由で適用。
-   - cap 枠内 + 同一 category の open Issue が無ければ `gh issue create --title <title> --body <body> --label "type:dev,status:action_required,user:toku"` で起票。
+   - cap 枠内 + 同一 category の open Issue が無ければ `gh issue create --title <title> --body <body> --label "type:dev,status:action_required,user:<owner>"` で起票。
 5. R-Self list (= 既存の `memory/shared/notes/dream-skill-suggestions-YYYY-MM-DD.md`) に 1 行追記:
    `- R-Self<N>: voice_error / <pattern_name> / 24h=<count> / #<issue>`
 

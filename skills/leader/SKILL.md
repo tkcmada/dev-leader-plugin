@@ -42,7 +42,7 @@ REPO_PATH=$(git rev-parse --show-toplevel)
 
 Use `${REPO_SLUG}` / `${PUSH_BRANCH}` / `${REPO_PATH}` (or the equivalent runtime lookups) wherever the doc mentions "the repo" / "the push branch" / "the project root".
 
-The leader is **user-agnostic**. Per-user concepts (toku/emi/ayaka, family-mode, voice) belong to the **consumer skill** (e.g. a Butler-side `butler` skill that wraps this one), never inside `leader`.
+The leader is **user-agnostic**. Per-user concepts (individual users, family-mode, voice) belong to the **consumer skill** (e.g. a wrapper skill that wraps this one), never inside `leader`.
 
 ## Memory Location
 
